@@ -42,18 +42,20 @@
         </javac>
     </target>
 
-    <target name="build.jar" depends="build.classes">
+    <target name="build.jar" depends="build.classes">	
+	    <mkdir dir="${build.dir}/jar"/>
+        <!-- The order is important here. Rhino MUST be unjarred first!
+             (some of our own classes will override the Rhino classes) -->
+        <unjar src="${lib.dir}/jargs-1.0.jar" dest="${build.dir}/jar"/>
+        <unjar src="${lib.dir}/rhino-1.7R2.jar" dest="${build.dir}/jar"/>
+        <copy todir="${build.dir}/jar">
+            <fileset dir="${build.dir}/classes" includes="**/*.class"/>
+        </copy>
+		
         <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask"
                 classpath="${lib.dir}/jarjar-1.4.1.jar"/>
-      
-        <jarjar jarfile="${build.dir}/${jar.name}">
-          
-          <!-- The order is important here. Rhino MUST be unjarred first!
-               (some of our own classes will override the Rhino classes) -->
-          <zipfileset src="${lib.dir}/jargs-1.0.jar"/>
-          <zipfileset src="${lib.dir}/rhino-1.7R2.jar"/>
-          <fileset dir="${build.dir}/classes"/> 
-          
+		<jarjar jarfile="${build.dir}/${jar.name}" duplicate="fail">
+		    <fileset dir="${build.dir}/jar"/>
             <rule pattern="org.mozilla.**" result="org.mozilla_yui.@1"/>
             <manifest>
                 <attribute name="Main-Class" value="com.yahoo.platform.yui.compressor.Bootstrap"/>
